@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blow Out the Candle</title>
+  <style>
+    :root {
+      --bg:#0e0f13; --wax:#f2d7b6; --wick:#222; --flame1:#ffd37a; --flame2:#ff9f1a; --flame3:#fff2c7;
+      --cake:#f7b6d2; --icing:#ffe8f1; --plate:#d7d9e0; --accent:#b03574;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: radial-gradient(ellipse at center,#1a1c24 0%, var(--bg) 60%);
+      color: #e7e9ef; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh; display: grid; place-items: center;
+    }
+    .wrap { width: 100%; max-width: 560px; padding: 20px 16px 40px; text-align: center; }
+    h1 { font-size: 22px; margin: 6px 0 14px; font-weight: 700; }
+    .stage {
+      position: relative; width: 100%; height: 420px; margin: 0 auto 18px;
+      display: grid; place-items: center;
+    }
+    /* Cake */
+    .cake {
+      position: relative; width: 360px; height: 180px;
+      background: linear-gradient(#f0a9c8, var(--cake));
+      border-radius: 12px 12px 18px 18px; box-shadow: 0 18px 60px rgba(0,0,0,.35) inset, 0 8px 30px rgba(0,0,0,.45);
+    }
+    .cake:before {
+      content:""; position:absolute; left:0; right:0; top:-26px; height:46px;
+      background: radial-gradient(circle at 50% 30%, #fff 0 30px, #ffeef7 31px 100%);
+      border-radius: 12px 12px 0 0; box-shadow: 0 10px 0 -6px #dfa1bf inset;
+    }
+    .cake:after {
+      content:""; position:absolute; inset:auto 24px -16px; height:18px; border-radius: 0 0 14px 14px;
+      background: linear-gradient(#b08aa3,#9aa3b2,#cfd3de); filter: blur(0.2px); opacity:.9;
+    }
+    .plate {
+      position:absolute; bottom:-32px; width:420px; height:24px; background: var(--plate);
+      border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    /* Candle */
+    .candle {
+      position:absolute; left:50%; top:-90px; transform: translateX(-50%);
+      width: 26px; height: 90px; background: linear-gradient(#ffe7c9,#ffe0b9,#ffd7a3);
+      border-radius: 8px; box-shadow: 0 0 0 2px rgba(0,0,0,.06) inset;
+    }
+    .candle:before {
+      content:""; position:absolute; left:6px; right:6px; top:10px; bottom:10px;
+      background: repeating-linear-gradient(135deg, #ffd0a2 0 10px, #ffffff 10px 20px);
+      border-radius: 6px;
+    }
+    .wick {
+      position:absolute; left:50%; top:-14px; transform: translateX(-50%);
+      width: 4px; height: 16px; background: var(--wick); border-radius: 2px;
+      box-shadow: 0 -3px 0 0 #555 inset;
+    }
+    /* Flame */
+    .flame {
+      position:absolute; left:50%; top:-54px; transform: translateX(-50%);
+      width: 22px; height: 42px; filter: drop-shadow(0 0 18px rgba(255,198,84,.75));
+      transition: opacity .25s ease, transform .15s ease;
+    }
+    .flame svg { display:block; width:100%; height:100%; }
+    .flicker { animation: flicker .12s infinite alternate ease-in-out; transform-origin: 50% 90%; }
+    @keyframes flicker {
+      from { transform: translateX(-50%) scale(1) rotate(-1deg); filter: drop-shadow(0 0 14px rgba(255,198,84,.75)); }
+      to   { transform: translateX(-50%) scale(1.03) rotate(1deg);  filter: drop-shadow(0 0 24px rgba(255,198,84,.95)); }
+    }
+    .extinguished { opacity: 0; filter: none; }
+    /* UI */
+    .panel { display:grid; gap:10px; margin-top: 6px; }
+    .row { display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+    button, input[type="file"], .url {
+      background:#1c2030; color:#e7e9ef; border:1px solid #2a3046; border-radius:10px;
+      padding:10px 14px; font-size:14px; cursor:pointer;
+    }
+    button[disabled] { opacity:.5; cursor:not-allowed; }
+    .meter {
+      height: 10px; width: 100%; max-width: 520px; background: #1b1f2b; border-radius: 999px;
+      overflow: hidden; border:1px solid #2a3046; margin: 6px auto 0;
+    }
+    .meter > i { display:block; height:100%; width:0%; background: linear-gradient(90deg,#2e9afe,#2ef8a0); transition: width .1s linear; }
+    .note { font-size: 12px; opacity: .8; }
+    /* Reveal image */
+    .reveal {
+      position:absolute; inset:0; display:grid; place-items:center; opacity:0; pointer-events:none;
+      transition: opacity .6s ease .15s;
+    }
+    .reveal.show { opacity:1; }
+    .reveal img {
+      max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 18px 60px rgba(0,0,0,.65);
+      background: #111; object-fit: contain;
+    }
+    .small { font-size: 12px; opacity: .75; margin-top: 4px; }
+    a { color:#9cc3ff; text-decoration: none; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Blow out the candle</h1>
+
+    <div class="stage">
+      <div class="cake">
+        <div class="candle">
+          <div class="wick"></div>
+          <div id="flame" class="flame flicker" aria-hidden="true">
+            <!-- SVG flame -->
+            <svg viewBox="0 0 40 70" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="g1" cx="50%" cy="35%" r="60%">
+                  <stop offset="0%" stop-color="var(--flame3)"/>
+                  <stop offset="60%" stop-color="var(--flame1)"/>
+                  <stop offset="100%" stop-color="var(--flame2)"/>
+                </radialGradient>
+              </defs>
+              <path d="M20 4
+                       C 13 16, 6 24, 6 36
+                       C 6 50, 14 62, 20 66
+                       C 26 62, 34 50, 34 36
+                       C 34 24, 27 16, 20 4 Z"
+                    fill="url(#g1)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="plate"></div>
+      </div>
+
+      <div id="reveal" class="reveal" aria-live="polite" aria-atomic="true">
+        <img id="revealImg" alt="Revealed image"/>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <button id="micBtn">Enable microphone</button>
+        <span id="status" class="note">Awaiting mic</span>
+      </div>
+      <div class="meter" aria-hidden="true"><i id="meterBar"></i></div>
+
+      <div class="row">
+        <input id="file" type="file" accept="image/png,image/jpeg,image/webp" />
+        <input id="url" class="url" placeholder="or paste image URL ?img=" size="38" />
+      </div>
+      <div class="small">To preconfigure via link, append <code>?img=FULL_IMAGE_URL</code>. Example: <code>.../index.html?img=https://example.com/pic.png</code></div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Parameters (tune if needed) ----
+    const INTEGRATION_WINDOW_MS = 1200;     // duration over which "wind" accumulates
+    const REQUIRED_WIND = 85;               // total wind required to extinguish
+    const MIN_VOLUME_TO_COUNT = 0.06;       // ignore tiny background noise
+    const DECAY_PER_SEC = 22;               // wind decays if you stop blowing
+    const SMOOTHING = 0.25;                 // exponential smoothing for meter
+    const MAX_RUNTIME_SEC = 120;            // auto-stop mic after this
+
+    // ---- Elements ----
+    const micBtn = document.getElementById('micBtn');
+    const statusEl = document.getElementById('status');
+    const flameEl = document.getElementById('flame');
+    const revealEl = document.getElementById('reveal');
+    const revealImg = document.getElementById('revealImg');
+    const meterBar = document.getElementById('meterBar');
+    const fileInput = document.getElementById('file');
+    const urlInput = document.getElementById('url');
+
+    // ---- Image source handling ----
+    (function preloadFromQuery() {
+      const params = new URLSearchParams(location.search);
+      const imgUrl = params.get('img');
+      if (imgUrl) setRevealImage(imgUrl);
+    })();
+
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      setRevealImage(url);
+    });
+
+    urlInput.addEventListener('change', () => {
+      const v = urlInput.value.trim();
+      if (v) setRevealImage(v);
+    });
+
+    function setRevealImage(src) {
+      revealImg.crossOrigin = "anonymous"; // safe default for remote images
+      revealImg.onload = () => { /* no-op */ };
+      revealImg.onerror = () => { status('Image failed to load'); };
+      revealImg.src = src;
+      status('Image set');
+    }
+
+    // ---- Mic + audio processing ----
+    let ctx, analyser, data, rafId, startT, wind = 0, smoothed = 0, stream;
+    let lastTs = 0, extinguished = false;
+
+    micBtn.addEventListener('click', enableMic);
+
+    async function enableMic() {
+      if (extinguished) resetCandle();
+      micBtn.disabled = true;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      } catch (e) {
+        status('Mic blocked'); micBtn.disabled = false; return;
+      }
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = ctx.createMediaStreamSource(stream);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.2;
+      data = new Float32Array(analyser.fftSize);
+      src.connect(analyser);
+      startT = performance.now();
+      lastTs = startT;
+      status('Listening');
+      loop();
+      // safety stop
+      setTimeout(stopMic, MAX_RUNTIME_SEC * 1000);
+    }
+
+    function stopMic() {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      if (ctx && ctx.state !== 'closed') ctx.close();
+      micBtn.disabled = false;
+      status('Mic off');
+    }
+
+    function loop(ts) {
+      rafId = requestAnimationFrame(loop);
+      analyser.getFloatTimeDomainData(data);
+
+      // Volume estimate: peak-to-peak over frame
+      let min = 1e9, max = -1e9;
+      for (let i = 0; i < data.length; i++) {
+        const v = data[i];
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      let p2p = (max - min) * 0.5;          // ~amplitude proxy, 0..1
+      // Gate small noise
+      let eff = Math.max(0, p2p - MIN_VOLUME_TO_COUNT);
+      // Normalize to "wind units"
+      const dt = Math.min(100, (ts ?? performance.now()) - lastTs) / 1000;
+      lastTs = (ts ?? performance.now());
+      const windGain = 140;                 // converts amplitude to wind/sec
+      wind += eff * windGain * dt;
+      // Decay when not blowing
+      wind = Math.max(0, wind - DECAY_PER_SEC * dt);
+
+      // Integrator window: clamp maximum accumulation
+      const cap = REQUIRED_WIND * 1.25;
+      wind = Math.min(wind, cap);
+
+      // UI meter smoothing
+      smoothed = smoothed * (1 - SMOOTHING) + (eff * 100) * SMOOTHING;
+      meterBar.style.width = Math.min(100, smoothed) + '%';
+
+      // Visual coupling: flame lean + size reduction
+      const lean = Math.min(12, eff * 90);
+      const scale = 1 - Math.min(0.25, eff * 0.9);
+      flameEl.style.transform = `translateX(-50%) rotate(${-lean}deg) scale(${scale})`;
+
+      // Progressive dim with accumulated wind
+      const progress = Math.min(1, wind / REQUIRED_WIND);
+      flameEl.style.opacity = String(1 - progress * 0.92);
+
+      if (!extinguished && progress >= 1) {
+        extinguish();
+      }
+    }
+
+    function extinguish() {
+      extinguished = true;
+      flameEl.classList.add('extinguished');
+      flameEl.classList.remove('flicker');
+      status('Candle out');
+      revealEl.classList.add('show');
+      stopMic();
+    }
+
+    function resetCandle() {
+      extinguished = false;
+      wind = 0; smoothed = 0;
+      flameEl.classList.remove('extinguished');
+      flameEl.classList.add('flicker');
+      revealEl.classList.remove('show');
+      meterBar.style.width = '0%';
+      status('Reset');
+    }
+
+    function status(msg) { statusEl.textContent = msg; }
+
+    // Accessibility: spacebar toggles mic
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { if (micBtn.disabled) stopMic(); else enableMic(); }
+    });
+  </script>
+</body>
+</html>
